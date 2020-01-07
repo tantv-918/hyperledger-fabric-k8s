@@ -1,0 +1,18 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: org1peer0-pv
+  labels:
+    type: local
+    name: org1peer0files
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    path: /nfs/org1peer0/var
+    server: storage.local.parisi.biz
+    readOnly: false

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: org2-ca
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: org2-ca
+  template:
+    metadata:
+      labels:
+        app: org2-ca
+    spec:
+      volumes:
+        - name: fabricfiles
+          persistentVolumeClaim:
+            claimName: fabric-pvc
+      containers:
+        - name: org2-ca
+          image: hyperledger/fabric-ca:1.4.4
+          imagePullPolicy: IfNotPresent
+          command:
+            [
+          		'sh',
+          		'-c',
+              'fabric-ca-server start -b admin:adminpw -d'
+            ]
+          env:
+            - name: TZ
+              value: 'America/Sao_Paulo'
+            - name: FABRIC_CA_SERVER_CA_NAME
+              value: 'ORG2CA'
+            - name: FABRIC_CA_SERVER_DEBUG
+              value: 'true'
+            - name: FABRIC_CA_SERVER_TLS_ENABLED
+              value: 'false'
+            - name: FABRIC_CA_SERVER_CA_CERTFILE
+              value: /fabric/crypto-config/peerOrganizations/org2.example.com/ca/ca.org2.example.com-cert.pem
+            - name: FABRIC_CA_SERVER_CA_KEYFILE
+              value: /fabric/crypto-config/peerOrganizations/org2.example.com/ca/4e1a53c34d446384f429b359a66b7fae162f0a2f1951fdbe06a2222ac7836689_sk
+            - name: FABRIC_CA_SERVER_TLS_CERTFILE
+              value: /fabric/crypto-config/peerOrganizations/org2.example.com/ca/ca.org2.example.com-cert.pem
+            - name: FABRIC_CA_SERVER_TLS_KEYFILE
+              value: /fabric/crypto-config/peerOrganizations/org2.example.com/ca/4e1a53c34d446384f429b359a66b7fae162f0a2f1951fdbe06a2222ac7836689_sk
+            - name: GODEBUG
+              value: 'netdns=go'
+          volumeMounts:
+            - mountPath: /fabric
+              name: fabricfiles

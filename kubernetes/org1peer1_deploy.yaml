@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-org1peer1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: org1peer1
+  template:
+    metadata:
+      labels:
+        name: org1peer1
+    spec:
+      volumes:
+        - name: fabricfiles
+          persistentVolumeClaim:
+            claimName: fabric-pvc
+        - name: org1peer1files
+          persistentVolumeClaim:
+            claimName: org1peer1-pvc
+        - name: dockersocket
+          hostPath:
+            path: /var/run/docker.sock
+
+      containers:
+        - name: peer
+          image: hyperledger/fabric-peer:1.4.4
+          imagePullPolicy: IfNotPresent
+          command: ['sh', '-c', 'peer node start']
+          env:
+            - name: TZ
+              value: 'America/Sao_Paulo'
+            - name: CORE_PEER_ADDRESSAUTODETECT
+              value: 'true'
+            - name: CORE_PEER_NETWORKID
+              value: nid1
+            - name: CORE_PEER_ID
+              value: example-org1peer1
+            - name: CORE_PEER_ADDRESS
+              value: example-org1peer1:30110
+            - name: CORE_PEER_LISTENADDRESS
+              value: 0.0.0.0:30110
+            # - name: CORE_PEER_CHAINCODEADDRESS
+            #   value: example-org1peer1:30112
+            # - name: CORE_PEER_CHAINCODELISTENADDRESS
+            #   value: 0.0.0.0:30112
+            - name: CORE_PEER_EVENTS_ADDRESS
+              value: 0.0.0.0:30111
+            - name: CORE_PEER_GOSSIP_BOOTSTRAP
+              value: example-org1peer1:30110
+            - name: CORE_PEER_GOSSIP_ENDPOINT
+              value: example-org1peer1:30110
+            - name: CORE_PEER_GOSSIP_EXTERNALENDPOINT
+              value: example-org1peer1:30110
+            - name: CORE_PEER_GOSSIP_ORGLEADER
+              value: 'false'
+            - name: CORE_PEER_GOSSIP_SKIPHANDSHAKE
+              value: 'true'
+            - name: CORE_PEER_GOSSIP_USELEADERELECTION
+              value: 'true'
+            - name: CORE_PEER_COMMITTER_ENABLED
+              value: 'true'
+            - name: CORE_PEER_PROFILE_ENABLED
+              value: 'true'
+            - name: CORE_VM_ENDPOINT
+              value: unix:///host/var/run/docker.sock
+            - name: CORE_PEER_LOCALMSPID
+              value: Org1MSP
+            - name: CORE_PEER_MSPCONFIGPATH
+              value: /fabric/crypto-config/peerOrganizations/org1.example.com/peers/peer1.org1.example.com/msp
+            - name: CORE_PEER_VALIDATOR_CONSENSUS_PLUGIN
+              value: 'pbft'
+            - name: CORE_PBFT_GENERAL_MODE
+              value: 'classic'
+            - name: CORE_PBFT_GENERAL_N
+              value: '4'
+            - name: FABRIC_LOGGING_SPEC
+              value: debug
+            - name: CORE_LOGGING_PEER
+              value: debug
+            - name: CORE_LOGGING_CAUTHDSL
+              value: debug
+            - name: CORE_LOGGING_GOSSIP
+              value: debug
+            - name: CORE_LOGGING_LEDGER
+              value: debug
+            - name: CORE_LOGGING_MSP
+              value: info
+            - name: CORE_LOGGING_POLICIES
+              value: debug
+            - name: CORE_LOGGING_GRPC
+              value: debug
+            - name: CORE_PEER_TLS_ENABLED
+              value: 'false'
+            # - name: CORE_LEDGER_STATE_STATEDATABASE
+            #   value: 'CouchDB'
+            # - name: CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS
+            #   value: 'localhost:5984'
+            # - name: CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME
+            #   value: 'hyperledgeruser'
+            # - name: CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
+            #   value: 'hyperledgerpass'
+            - name: FABRIC_CFG_PATH
+              value: /etc/hyperledger/fabric
+            - name: ORDERER_URL
+              value: blockchain-orderer:31010
+            - name: GODEBUG
+              value: 'netdns=go'
+            - name: CORE_VM_DOCKER_ATTACHSTDOUT
+              value: 'true'
+          volumeMounts:
+            - mountPath: /fabric
+              name: fabricfiles
+            - mountPath: /var
+              name: org1peer1files
+            - mountPath: /host/var/run/docker.sock
+              name: dockersocket
+        # - name: couchdb
+        #   image: hyperledger/fabric-couchdb:0.4.18
+        #   env:
+        #     - name: TZ
+        #       value: 'America/Sao_Paulo'
+        #     - name: COUCHDB_USER
+        #       value: 'hyperledgeruser'
+        #     - name: COUCHDB_PASSWORD
+        #       value: 'hyperledgerpass'
